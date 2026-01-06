@@ -10,5 +10,12 @@
 <p><strong>Priorité :</strong> {{ ticket.priorite }}</p>
 <p><strong>Statut :</strong> {{ ticket.statut }}</p>
 
+<!-- Fermer le ticket -->
+{% if ticket.statut == "Ouvert" %}
+<form method="post" action="{{ url_for('ticket_close', ticket_id=ticket.id) }}" style="display:inline;">
+    <button type="submit" class="btn btn-danger">Fermer le ticket</button>
+</form>
+{% endif %}
+
 <a href="{{ url_for('tickets_list') }}" class="btn btn-secondary">Retour à la liste</a>
 {% endblock %}

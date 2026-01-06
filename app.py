@@ -50,6 +50,14 @@ def ticket_details(ticket_id):
         return render_template("404.html")
     return render_template("ticket_details.html", ticket=ticket_trouve)
 
+# Fermer un ticket
+@app.route("/tickets/<int:ticket_id>/close", methods=["POST"])
+def ticket_close(ticket_id):
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            ticket["statut"] = "Fermé"
+            break
+    return redirect(url_for("ticket_details", ticket_id=ticket_id))
 
 if __name__ == "__main__":
     app.run(debug=True)
