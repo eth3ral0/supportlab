@@ -66,15 +66,17 @@ def ticket_detail(ticket_id):
     return render_template("ticket_details.html", ticket=ticket)
 
 
-# Fermer un ticket
-@app.route("/tickets/<int:ticket_id>/close", methods=["POST"])
-def ticket_close(ticket_id):
+# Statuts des tickets
+@app.route("/tickets/<int:ticket_id>/status", methods=["POST"])
+def update_ticket_status(ticket_id):
+    statut = request.form.get("statut")
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute(
         "UPDATE tickets SET statut = ? WHERE id = ?",
-        ("Fermé", ticket_id),
+        (statut, ticket_id),
     )
     conn.commit()
     conn.close()

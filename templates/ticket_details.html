@@ -11,11 +11,22 @@
 <p><strong>Priorité :</strong> {{ ticket["priorite"] }}</p>
 <p><strong>Statut :</strong> {{ ticket["statut"] }}</p>
 
-<!-- Fermer le ticket -->
+<!-- Status : Ouvert/En cours/Fermé/Résolu -->
 {% if ticket["statut"] == "Ouvert" %}
-<form method="post" action="{{ url_for('ticket_close', ticket_id=ticket['id']) }}" style="display:inline;">
-    <button type="submit" class="btn btn-danger">Fermer le ticket</button>
-</form>
+  <form method="post" action="{{ url_for('update_ticket_status', ticket_id=ticket['id']) }}">
+    <input type="hidden" name="statut" value="En cours">
+    <button type="submit" class="btn btn-primary">Marquer comme En cours</button>
+  </form>
+{% elif ticket["statut"] == "En cours" %}
+  <form method="post" action="{{ url_for('update_ticket_status', ticket_id=ticket['id']) }}">
+    <input type="hidden" name="statut" value="Résolu">
+    <button type="submit" class="btn btn-success">Marquer comme Résolu</button>
+  </form>
+{% elif ticket["statut"] == "Résolu" %}
+  <form method="post" action="{{ url_for('update_ticket_status', ticket_id=ticket['id']) }}">
+    <input type="hidden" name="statut" value="Fermé">
+    <button type="submit" class="btn btn-danger">Marquer comme Fermé</button>
+  </form>
 {% endif %}
 
 <a href="{{ url_for('tickets_list') }}" class="btn btn-secondary">Retour à la liste</a>
