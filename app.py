@@ -27,12 +27,13 @@ def ticket_new():
     if request.method == "POST":
         titre = request.form.get("titre")
         description = request.form.get("description")
+        categorie = request.form.get("categorie")
         priorite = request.form.get("priorite")
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO tickets (titre, description, priorite, statut) VALUES (?, ?, ?, ?)",
-            (titre, description, priorite, "Ouvert"),
+            "INSERT INTO tickets (titre, description, categorie, priorite, statut) VALUES (?, ?, ?, ?, ?)",
+            (titre, description, categorie, priorite, "Ouvert"),
         )
         conn.commit()
         conn.close()
