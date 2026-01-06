@@ -40,15 +40,15 @@ def ticket_new():
     return render_template("ticket_new.html")
 
 @app.route("/tickets/<int:ticket_id>")
-def ticket_detail(ticket_id):
+def ticket_details(ticket_id):
     ticket_trouve = None
     for ticket in tickets:
         if ticket["id"] == ticket_id:
             ticket_trouve = ticket
             break  # on a trouvé, on sort de la boucle
     if ticket_trouve is None:
-        return render_template("404.html"), 404
-    return render_template("ticket_detail.html", ticket=ticket_trouve)
+        return render_template("404.html")
+    return render_template("ticket_details.html", ticket=ticket_trouve)
 
 
 if __name__ == "__main__":

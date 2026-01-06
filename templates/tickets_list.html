@@ -19,7 +19,7 @@
     {% for t in tickets %}
         <tr>
             <td>{{ t.id }}</td>
-            <td><a href="{{ url_for('ticket_detail', ticket_id=t.id) }}">{{ t.titre }}</a></td>
+            <td><a href="{{ url_for('ticket_details', ticket_id=t.id) }}">{{ t.titre }}</a></td>
             <td>{{ t.priorite }}</td>
             <td>{{ t.statut }}</td>
         </tr>

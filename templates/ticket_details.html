@@ -1,45 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Detail du ticket{% endblock %}
+{% block title %}Détail ticket{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Détails du ticket</h1>
+<h1>Détail du ticket #{{ ticket.id }}</h1>
 
-{% if ticket %}
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">{{ ticket.titre }}</h5>
-    <p class="card-text">{{ ticket.description }}</p>
-    <p class="card-text"><strong>Priorité:</strong> {{ ticket.priorite }}</p>
-    <p class="card-text"><strong>Statut:</strong> {{ ticket.statut }}</p>
-  </div>
-</div>
-{% else %}
-<p>Aucun ticket trouvé.</p>
-{% endif %}
+<p><strong>Titre :</strong> {{ ticket.titre }}</p>
+<p><strong>Description :</strong> {{ ticket.description }}</p>
+<p><strong>Priorité :</strong> {{ ticket.priorite }}</p>
+<p><strong>Statut :</strong> {{ ticket.statut }}</p>
 
 <a href="{{ url_for('tickets_list') }}" class="btn btn-secondary">Retour à la liste</a>
-{% endblock %}
-            <th>#</th>
-            <th>Titre</th>
-            <th>Priorité</th>
-            <th>Statut</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for t in tickets %}
-        <tr>
-            <td>{{ t.id }}</td>
-            <td><a href="{{ url_for('ticket_detail', ticket_id=t.id) }}">{{ t.titre }}</a></td>
-            <td>{{ t.priorite }}</td>
-            <td>{{ t.statut }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>Aucun ticket pour l’instant.</p>
-{% endif %}
-
-<a class="btn btn-primary" href="{{ url_for('ticket_new') }}">Créer un ticket</a>
 {% endblock %}
