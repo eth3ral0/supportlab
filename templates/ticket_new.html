@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Nouveau ticket{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Nouveau ticket</h1>
+
+<form method="post">
+  <div class="mb-3">
+    <label for="titre" class="form-label">Titre</label>
+    <input type="text" class="form-control" id="titre" name="titre" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="description" class="form-label">Description</label>
+    <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label for="priorite" class="form-label">Priorité</label>
+    <select class="form-select" id="priorite" name="priorite" required>
+      <option value="Basse">Basse</option>
+      <option value="Normale" selected>Normale</option>
+      <option value="Haute">Haute</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-success">Créer le ticket</button>
+  <a href="{{ url_for('tickets_list') }}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}
