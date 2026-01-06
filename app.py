@@ -11,7 +11,6 @@ next_id = 1
 def index():
     return redirect(url_for("tickets_list"))
 
-
 @app.route("/tickets")
 def tickets_list():
     return render_template("tickets_list.html", tickets=tickets)
@@ -39,6 +38,17 @@ def ticket_new():
         return redirect(url_for("tickets_list"))
 
     return render_template("ticket_new.html")
+
+@app.route("/tickets/<int:ticket_id>")
+def ticket_detail(ticket_id):
+    ticket_trouve = None
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            ticket_trouve = ticket
+            break  # on a trouvé, on sort de la boucle
+    if ticket_trouve is None:
+        return render_template("404.html"), 404
+    return render_template("ticket_detail.html", ticket=ticket_trouve)
 
 
 if __name__ == "__main__":
