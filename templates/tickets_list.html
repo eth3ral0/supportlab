@@ -13,6 +13,7 @@
             <th>Titre</th>
             <th>Priorité</th>
             <th>Catégorie</th>
+            <th>Note</th>
             <th>Statut</th>
         </tr>
     </thead>
@@ -21,8 +22,21 @@
         <tr>
             <td>{{ t["id"] }}</td>
             <td><a href="{{ url_for('ticket_detail', ticket_id=t["id"]) }}">{{ t["titre"] }}</a></td>
-            <td>{{ t["priorite"] }}</td>
+            <td>{% if t["priorite"] == "Haute" %}
+                <span class="badge bg-danger">{{ t["priorite"] }}</span>
+            {% elif t["priorite"] == "Normale" %}
+                <span class="badge bg-warning text-dark">{{ t["priorite"] }}</span>
+            {% elif t["priorite"] == "Basse" %}
+                <span class="badge bg-success">{{ t["priorite"] }}</span>
+            {% endif %}</td>
             <td>{{ t["categorie"] }}</td>
+            <td>
+                {% if t["note"] %}
+                    <span class="badge bg-success">Oui</span>
+                {% else %}
+                    <span class="badge bg-secondary">Non</span>
+                {% endif %}
+                </td>
             <td>{{ t["statut"] }}</td>
         </tr>
     {% endfor %}
