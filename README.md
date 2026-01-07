@@ -16,7 +16,7 @@ Application web de **ticketing** développée avec Flask et Python, conçue pour
   - `404.html` : page d’erreur personnalisée.
 - Stockage des données dans une base SQLite (`supportlab.db`).
 
-## Prérequis
+## Prérequis :
 
 - Python 3.x  
 - Bibliothèque Python :
