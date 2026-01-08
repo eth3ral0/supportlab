@@ -100,5 +100,17 @@ def add_ticket_note(ticket_id):
 
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
+# Suppression d'un ticket
+@app.route("/tickets/<int:ticket_id>/delete", methods=["POST"])
+def delete_ticket(ticket_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM tickets WHERE id = ?", (ticket_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("tickets_list"))
+
 if __name__ == "__main__":
     app.run(debug=True)
