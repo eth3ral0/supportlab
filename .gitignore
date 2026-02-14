@@ -1,0 +1,27 @@
+# Base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Environnement Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Variables d'environnement sensibles
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Système
+.DS_Store
+Thumbs.db
