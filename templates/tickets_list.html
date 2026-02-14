@@ -5,6 +5,50 @@
 {% block content %}
 <h1 class="mb-4">Liste des tickets</h1>
 
+<!-- Formulaire de recherche et filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('tickets_list') }}">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="search" 
+                           placeholder="🔍 Rechercher..." 
+                           value="{{ recherche }}">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="statut">
+                        <option value="">Tous les statuts</option>
+                        <option value="Ouvert" {% if filtre_statut == 'Ouvert' %}selected{% endif %}>Ouvert</option>
+                        <option value="En cours" {% if filtre_statut == 'En cours' %}selected{% endif %}>En cours</option>
+                        <option value="Résolu" {% if filtre_statut == 'Résolu' %}selected{% endif %}>Résolu</option>
+                        <option value="Fermé" {% if filtre_statut == 'Fermé' %}selected{% endif %}>Fermé</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="priorite">
+                        <option value="">Toutes les priorités</option>
+                        <option value="Haute" {% if filtre_priorite == 'Haute' %}selected{% endif %}>Haute</option>
+                        <option value="Normale" {% if filtre_priorite == 'Normale' %}selected{% endif %}>Normale</option>
+                        <option value="Basse" {% if filtre_priorite == 'Basse' %}selected{% endif %}>Basse</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="categorie">
+                        <option value="">Toutes les catégories</option>
+                        <option value="Logiciel" {% if filtre_categorie == 'Logiciel' %}selected{% endif %}>Logiciel</option>
+                        <option value="Matériel" {% if filtre_categorie == 'Matériel' %}selected{% endif %}>Matériel</option>
+                        <option value="Réseau" {% if filtre_categorie == 'Réseau' %}selected{% endif %}>Réseau</option>
+                        <option value="Autre" {% if filtre_categorie == 'Autre' %}selected{% endif %}>Autre</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% if tickets %}
 <table class="table table-striped">
     <thead>

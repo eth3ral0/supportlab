@@ -1,12 +1,134 @@
 {% extends "base.html" %}
-
 {% block title %}Rapports{% endblock %}
 
-
 {% block content %}
-<h1>Rapports</h1>
-<p>Page de gestion des rapports du système.</p>
+<h1 class="mb-4">📊 Rapports et Statistiques</h1>
 
+{% if stats %}
+<!-- Statistiques générales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total de tickets</h5>
+                <h2 class="display-4">{{ stats.total }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Ouverts</h5>
+                <h2 class="display-4">{{ stats.ouverts }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">En cours</h5>
+                <h2 class="display-4">{{ stats.en_cours }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Résolus</h5>
+                <h2 class="display-4">{{ stats.resolus }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
 
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Fermés</h5>
+                <h2 class="display-4">{{ stats.fermes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Nouveaux (7 derniers jours)</h5>
+                <h2 class="display-4">{{ stats.recents }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Répartition par priorité -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>📌 Répartition par Priorité</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Priorité</th>
+                            <th>Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats.repartition_priorite %}
+                        <tr>
+                            <td>
+                                {% if item['priorite'] == 'Haute' %}
+                                <span class="badge bg-danger">{{ item['priorite'] }}</span>
+                                {% elif item['priorite'] == 'Normale' %}
+                                <span class="badge bg-warning text-dark">{{ item['priorite'] }}</span>
+                                {% else %}
+                                <span class="badge bg-success">{{ item['priorite'] }}</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ item['count'] }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Répartition par catégorie -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>📂 Répartition par Catégorie</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Catégorie</th>
+                            <th>Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats.repartition_categorie %}
+                        <tr>
+                            <td>{{ item['categorie'] }}</td>
+                            <td><strong>{{ item['count'] }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+    <p>Aucune donnée disponible pour générer des rapports.</p>
+</div>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('tickets_list') }}">← Retour aux tickets</a>
 {% endblock %}

@@ -1,11 +1,81 @@
 {% extends "base.html" %}
-
 {% block title %}Paramètres{% endblock %}
 
 {% block content %}
-<h1>Paramètres</h1>
-<p>Page de paramètres du système.</p>
+<h1 class="mb-4">⚙️ Paramètres</h1>
 
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5>📊 Statuts disponibles</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for statut in config.statuts %}
+                    <li class="list-group-item">{{ statut }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5>🎯 Priorités disponibles</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for priorite in config.priorites %}
+                    <li class="list-group-item">
+                        {% if priorite == 'Haute' %}
+                        <span class="badge bg-danger">{{ priorite }}</span>
+                        {% elif priorite == 'Normale' %}
+                        <span class="badge bg-warning text-dark">{{ priorite }}</span>
+                        {% else %}
+                        <span class="badge bg-success">{{ priorite }}</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5>📂 Catégories disponibles</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for categorie in config.categories %}
+                    <li class="list-group-item">{{ categorie }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5>ℹ️ Informations système</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Base de données :</strong> SQLite</p>
+        <p><strong>Framework :</strong> Flask</p>
+        <p><strong>Version :</strong> 1.0.0</p>
+        <p><strong>Mode :</strong> 
+            {% if config.get('debug_mode') %}
+            <span class="badge bg-warning">Développement</span>
+            {% else %}
+            <span class="badge bg-success">Production</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<a class="btn btn-secondary" href="{{ url_for('tickets_list') }}">← Retour aux tickets</a>
 {% endblock %}

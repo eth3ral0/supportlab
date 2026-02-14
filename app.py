@@ -35,15 +35,51 @@ def index():
 
 @app.route("/tickets")
 def tickets_list():
+    # Récupérer les paramètres de filtre
+    filtre_statut = request.args.get('statut', '')
+    filtre_priorite = request.args.get('priorite', '')
+    filtre_categorie = request.args.get('categorie', '')
+    recherche = request.args.get('search', '')
+    
     try:
         with get_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, titre, categorie, priorite, statut, note, date_creation FROM tickets ORDER BY id DESC;")
+            
+            # Construction de la requête avec filtres
+            query = "SELECT id, titre, categorie, priorite, statut, note, date_creation FROM tickets WHERE 1=1"
+            params = []
+            
+            if filtre_statut:
+                query += " AND statut = ?"
+                params.append(filtre_statut)
+            
+            if filtre_priorite:
+                query += " AND priorite = ?"
+                params.append(filtre_priorite)
+            
+            if filtre_categorie:
+                query += " AND categorie = ?"
+                params.append(filtre_categorie)
+            
+            if recherche:
+                query += " AND (titre LIKE ? OR description LIKE ?)"
+                params.append(f"%{recherche}%")
+                params.append(f"%{recherche}%")
+            
+            query += " ORDER BY id DESC"
+            
+            cursor.execute(query, params)
             tickets = cursor.fetchall()
-        return render_template("tickets_list.html", tickets=tickets)
+            
+        return render_template("tickets_list.html", tickets=tickets, 
+                             filtre_statut=filtre_statut,
+                             filtre_priorite=filtre_priorite,
+                             filtre_categorie=filtre_categorie,
+                             recherche=recherche)
     except sqlite3.Error as e:
         flash(f"Erreur lors du chargement des tickets: {str(e)}", "danger")
         return render_template("tickets_list.html", tickets=[])
+
 
 @app.route("/tickets/new", methods=["GET", "POST"])
 def ticket_new():
@@ -150,18 +186,30 @@ def update_ticket_status(ticket_id):
 @app.route("/tickets/<int:ticket_id>/note", methods=["POST"])
 def add_ticket_note(ticket_id):
     note = request.form.get("note", "").strip()
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "UPDATE tickets SET note = ? WHERE id = ?",
-        (note, ticket_id),
-    )
-    conn.commit()
-    conn.close()
-
+    
+    # Pas de validation stricte, la note peut être vide
+    # On accepte même une note vide pour effacer une note existante
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE tickets SET note = ? WHERE id = ?",
+            (note, ticket_id),
+        )
+        conn.commit()
+        conn.close()
+        
+        if note:
+            flash("Note mise à jour avec succès", "success")
+        else:
+            flash("Note supprimée", "info")
+            
+    except sqlite3.Error as e:
+        flash(f"Erreur lors de la mise à jour de la note: {str(e)}", "danger")
+    
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
+
 
 # Suppression d'un ticket
 @app.route("/tickets/<int:ticket_id>/delete", methods=["POST"])
@@ -189,11 +237,76 @@ def delete_ticket(ticket_id):
 
 @app.route("/reports")
 def reports():
-    return render_template("reports.html")
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            
+            # Statistiques générales
+            cursor.execute("SELECT COUNT(*) as total FROM tickets")
+            total_tickets = cursor.fetchone()['total']
+            
+            cursor.execute("SELECT COUNT(*) as total FROM tickets WHERE statut = 'Ouvert'")
+            tickets_ouverts = cursor.fetchone()['total']
+            
+            cursor.execute("SELECT COUNT(*) as total FROM tickets WHERE statut = 'En cours'")
+            tickets_en_cours = cursor.fetchone()['total']
+            
+            cursor.execute("SELECT COUNT(*) as total FROM tickets WHERE statut = 'Résolu'")
+            tickets_resolus = cursor.fetchone()['total']
+            
+            cursor.execute("SELECT COUNT(*) as total FROM tickets WHERE statut = 'Fermé'")
+            tickets_fermes = cursor.fetchone()['total']
+            
+            # Répartition par priorité
+            cursor.execute("""
+                SELECT priorite, COUNT(*) as count 
+                FROM tickets 
+                GROUP BY priorite
+            """)
+            repartition_priorite = cursor.fetchall()
+            
+            # Répartition par catégorie
+            cursor.execute("""
+                SELECT categorie, COUNT(*) as count 
+                FROM tickets 
+                GROUP BY categorie
+            """)
+            repartition_categorie = cursor.fetchall()
+            
+            # Tickets récents (7 derniers jours)
+            cursor.execute("""
+                SELECT COUNT(*) as total 
+                FROM tickets 
+                WHERE date_creation >= datetime('now', '-7 days')
+            """)
+            tickets_recents = cursor.fetchone()['total']
+            
+            stats = {
+                'total': total_tickets,
+                'ouverts': tickets_ouverts,
+                'en_cours': tickets_en_cours,
+                'resolus': tickets_resolus,
+                'fermes': tickets_fermes,
+                'recents': tickets_recents,
+                'repartition_priorite': repartition_priorite,
+                'repartition_categorie': repartition_categorie
+            }
+            
+        return render_template("reports.html", stats=stats)
+    except sqlite3.Error as e:
+        flash(f"Erreur lors du chargement des rapports: {str(e)}", "danger")
+        return render_template("reports.html", stats=None)
 
 @app.route("/settings")
 def settings():
-    return render_template("settings.html")
+    # Configuration de l'application
+    config = {
+        'statuts': ["Ouvert", "En cours", "Résolu", "Fermé"],
+        'priorites': ["Basse", "Normale", "Haute"],
+        'categories': ["Support utilisateur", "Problème technique", "Demande de service"]
+    }
+    return render_template("settings.html", config=config)
+
 
 @app.errorhandler(404)
 def page_not_found(e):
