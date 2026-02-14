@@ -86,42 +86,57 @@ def ticket_new():
 
 @app.route("/tickets/<int:ticket_id>")
 def ticket_detail(ticket_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT id, titre, description, categorie, priorite, statut, note, date_creation FROM tickets WHERE id = ?",
-        (ticket_id,),
-    )
-    ticket = cursor.fetchone()
-    conn.close()
-
-    if ticket is None:
-        return "Ticket introuvable", 404
-    return render_template("ticket_details.html", ticket=ticket)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, titre, description, categorie, priorite, statut, note, date_creation FROM tickets WHERE id = ?",
+            (ticket_id,),
+        )
+        ticket = cursor.fetchone()
+        conn.close()
+        
+        if ticket is None:
+            flash("Ticket introuvable", "warning")
+            return redirect(url_for("tickets_list"))
+        
+        return render_template("ticket_details.html", ticket=ticket)
+    except sqlite3.Error as e:
+        flash(f"Erreur lors de la récupération du ticket: {str(e)}", "danger")
+        return redirect(url_for("tickets_list"))
 
 
 # Statuts des tickets
 @app.route("/tickets/<int:ticket_id>/status", methods=["POST"])
 def update_ticket_status(ticket_id):
-    statut = request.form.get("statut")
+    statut = request.form.get("statut", "").strip()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    # Validation du statut (whitelist)
+    statuts_valides = ["Ouvert", "En cours", "Résolu", "Fermé"]
+    if statut not in statuts_valides:
+        flash("Statut invalide", "danger")
+        return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
-    cursor.execute(
-        "UPDATE tickets SET statut = ? WHERE id = ?",
-        (statut, ticket_id),
-    )
-    conn.commit()
-    conn.close()
-
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE tickets SET statut = ? WHERE id = ?",
+            (statut, ticket_id),
+        )
+        conn.commit()
+        conn.close()
+        flash("Statut mis à jour avec succès", "success")
+    except sqlite3.Error as e:
+        flash(f"Erreur lors de la mise à jour: {str(e)}", "danger")
+    
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
+    
 
 # Ajout d'une note au ticket
 @app.route("/tickets/<int:ticket_id>/note", methods=["POST"])
 def add_ticket_note(ticket_id):
-    note = request.form.get("note")
+    note = request.form.get("note", "").strip()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -138,14 +153,27 @@ def add_ticket_note(ticket_id):
 # Suppression d'un ticket
 @app.route("/tickets/<int:ticket_id>/delete", methods=["POST"])
 def delete_ticket(ticket_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM tickets WHERE id = ?", (ticket_id,))
-    conn.commit()
-    conn.close()
+        cursor.execute("DELETE FROM tickets WHERE id = ?", (ticket_id,))
+        ticket = cursor.fetchone()
+        
+        if not ticket:
+            conn.close()
+            flash("Ticket introuvable", "danger")
+            return redirect(url_for("tickets_list"))
+        
+        cursor.execute("DELETE FROM tickets WHERE id = ?", (ticket_id,))
+        conn.commit()
+        conn.close()
+        flash("Ticket supprimé avec succès", "success")
+    except sqlite3.Error as e:
+        flash(f"Erreur lors de la suppression: {str(e)}", "danger")
 
     return redirect(url_for("tickets_list"))
+
 @app.route("/reports")
 def reports():
     return render_template("reports.html")
@@ -153,6 +181,15 @@ def reports():
 @app.route("/settings")
 def settings():
     return render_template("settings.html")
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template('500.html'), 500
+
 if __name__ == "__main__":
     # Active le debug seulement si on est en mode développement
     debug_mode = os.getenv('FLASK_ENV') == 'development'
