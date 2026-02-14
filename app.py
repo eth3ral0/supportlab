@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import sqlite3
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -19,18 +20,30 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row  # pour accéder aux colonnes par nom
     return conn
 
+@contextmanager
+def get_db():
+    """Context manager pour la gestion automatique des connexions DB"""
+    conn = get_db_connection()
+    try:
+        yield conn
+    finally:
+        conn.close()
+
 @app.route("/")
 def index():
     return redirect(url_for("tickets_list"))
 
 @app.route("/tickets")
 def tickets_list():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, titre, categorie, priorite, statut, note, date_creation FROM tickets ORDER BY id DESC;")
-    tickets = cursor.fetchall()
-    conn.close()
-    return render_template("tickets_list.html", tickets=tickets)
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, titre, categorie, priorite, statut, note, date_creation FROM tickets ORDER BY id DESC;")
+            tickets = cursor.fetchall()
+        return render_template("tickets_list.html", tickets=tickets)
+    except sqlite3.Error as e:
+        flash(f"Erreur lors du chargement des tickets: {str(e)}", "danger")
+        return render_template("tickets_list.html", tickets=[])
 
 @app.route("/tickets/new", methods=["GET", "POST"])
 def ticket_new():
