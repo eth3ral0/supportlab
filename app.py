@@ -1,11 +1,21 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for
+import os
+from flask import Flask, render_template, request, redirect, url_for, flash
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-insecure')
+app.config['DATABASE_PATH'] = os.getenv('DATABASE_PATH', 'supportlab.db')
+
+if app.config['SECRET_KEY'] == 'dev-key-insecure':
+    print("WARNING: Using default insecure secret key. Set a proper SECRET_KEY in the .env file for production.")
+
 # Accès à la base de données SQLite
 def get_db_connection():
-    conn = sqlite3.connect("supportlab.db")
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
     conn.row_factory = sqlite3.Row  # pour accéder aux colonnes par nom
     return conn
 
@@ -25,25 +35,50 @@ def tickets_list():
 @app.route("/tickets/new", methods=["GET", "POST"])
 def ticket_new():
     if request.method == "POST":
-        titre = request.form.get("titre")
-        description = request.form.get("description")
-        categorie = request.form.get("categorie")
-        priorite = request.form.get("priorite")
-        note = request.form.get("note")
+        titre = request.form.get("titre", "").strip()
+        description = request.form.get("description", "").strip()
+        categorie = request.form.get("categorie", "").strip()
+        priorite = request.form.get("priorite", "").strip()
+        note = request.form.get("note", "").strip()
+        
+        # Validation des champs
+        if not titre:
+            flash("Le titre est obligatoire.", "danger")
+            return render_template("ticket_new.html")
+        if not description:
+            flash("La description est obligatoire.", "danger")
+            return render_template("ticket_new.html")
+        priorite_valides = ["Basse", "Moyenne", "Haute"]
+        
+        # Validation de la priorité (whitelist)
+        if priorite not in priorite_valides:
+            flash("La priorité doit être l'une des suivantes : Basse, Moyenne, Haute.", "danger")
+            return render_template("ticket_new.html")
+        
+        # Validation de la catégorie (whitelist)
+        categories_valides = ["Logiciel", "Matériel", "Réseau", "Autre"]
+        if categorie not in categories_valides:
+            flash("Catégorie invalide", "danger")
+            return render_template("ticket_new.html")
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO tickets (titre, description, priorite, statut, categorie, note)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (titre, description, priorite, "Ouvert", categorie, note),
-        )
-        conn.commit()
-        conn.close()
-
-        return redirect(url_for("tickets_list"))
+        # Insertion sécurisée avec gestion d'erreur
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO tickets (titre, description, priorite, statut, categorie, note)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (titre, description, priorite, "Ouvert", categorie, note),
+            )
+            conn.commit()
+            conn.close()
+            flash("Ticket créé avec succès !", "success")
+            return redirect(url_for("tickets_list"))
+        except Exception as e:
+            flash(f"Une erreur est survenue lors de la création du ticket : {str(e)}", "danger")
+            return render_template("ticket_new.html")
 
     # Ici : affichage du formulaire en GET
     return render_template("ticket_new.html")
